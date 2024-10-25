@@ -8,3 +8,4 @@ Sau đó, chạy lệnh sau để cài đặt
 - Chạy Ứng Dụng: "python facebook_auto_comment.py"
 - Kết Luận
 Với các bước trên, bạn đã có thể cài đặt và chạy ứng dụng của mình. Nếu bạn gặp bất kỳ vấn đề nào, hãy kiểm tra lại các bước hoặc tìm kiếm trên Google để tìm giải pháp. Chúc bạn thành công!
+![Uploading image.png…]()
