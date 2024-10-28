@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import scrolledtext, ttk
+from tkinter import scrolledtext, ttk, messagebox
 import pickle
 import os
 import time
@@ -19,7 +19,11 @@ if not os.path.exists(cookies_dir):
 def log_message(message):
     """Hàm ghi lại thông điệp vào bảng hiển thị."""
     log_text.insert(tk.END, message + '\n')
-    log_text.see(tk.END)  # Cuộn xuống cuối bảng hiển thị
+    log_text.see(tk.END)
+
+def random_sleep(min_seconds=1, max_seconds=3):
+    """Hàm để ngủ ngẫu nhiên giữa các hành động."""
+    time.sleep(random.uniform(min_seconds, max_seconds))
 
 def add_facebook_account():
     """Hàm để thêm tài khoản Facebook mới."""
@@ -50,7 +54,7 @@ def add_facebook_account():
             log_message("Đang đăng nhập vào Facebook...")
             driver = webdriver.Chrome()
             driver.get("https://www.facebook.com/")
-            time.sleep(2)
+            random_sleep(2, 4)
 
             # Nhập thông tin đăng nhập
             email_input = driver.find_element(By.NAME, "email")
@@ -58,7 +62,7 @@ def add_facebook_account():
             email_input.send_keys(email)
             password_input.send_keys(password)
             password_input.send_keys(Keys.RETURN)
-            time.sleep(5)  # Đợi để đăng nhập
+            random_sleep(5, 10)  # Đợi để đăng nhập
 
             # Theo dõi trạng thái đăng nhập
             while True:
@@ -86,7 +90,7 @@ def add_facebook_account():
                             verification_input = driver.find_element(By.NAME, "approvals_code")
                             verification_input.send_keys(verification_code)
                             verification_input.send_keys(Keys.RETURN)
-                            time.sleep(5)  # Đợi để đăng nhập
+                            random_sleep(5, 10)  # Đợi để đăng nhập
 
                             # Kiểm tra lại trạng thái đăng nhập
                             continue  # Quay lại vòng lặp để kiểm tra lại trạng thái
@@ -96,7 +100,7 @@ def add_facebook_account():
                             log_message("Đăng nhập thành công!")
                             break  # Thoát vòng lặp khi đăng nhập thành công
 
-                time.sleep(2)  # Đợi một chút trước khi kiểm tra lại
+                random_sleep(2, 4)  # Đợi một chút trước khi kiểm tra lại
 
             # Lưu cookies vào tệp riêng biệt cho tài khoản trong thư mục cookies
             cookies = driver.get_cookies()
@@ -140,7 +144,7 @@ def login_with_cookies(account_info):
     
     log_message("Đang truy cập Facebook...")
     driver.get("https://www.facebook.com/")
-    time.sleep(2)
+    random_sleep(2, 4)
 
     # Tải cookies từ tệp tương ứng với tài khoản đã chọn
     cookies_file_path = os.path.join(cookies_dir, f"{account_info}_cookies.txt")
@@ -153,7 +157,7 @@ def login_with_cookies(account_info):
 
         log_message("Đang tải lại Facebook với cookies...")
         driver.get("https://www.facebook.com/")
-        time.sleep(5)
+        random_sleep(5, 10)
 
         # Kiểm tra trạng thái đăng nhập
         if "facebook.com" in driver.current_url:
@@ -186,12 +190,15 @@ def start_tool():
     threading.Thread(target=login_with_cookies, args=(account_info,)).start()
 
 def auto_comment(account_info, driver):
-    """Hàm tự động bình luận vào tất cả các bài viết tìm thấy."""
+    """Hàm tự động bình luận vào tất cả các bài viết tìm thấy.""" 
     commented_links = load_commented_links('commented_links.txt')
     
+    # Danh sách bình luận
     comments = [
         "Chào mọi người! Nhận mã giảm giá đặc biệt từ Highlands Coffee tại https://shorten.asia/gPkmnG3e!",
         "Giải Pháp Tài Chính Đơn Giản! Cần tiền nhanh chóng? Truy cập https://vay.fecredit.com.vn/ để tìm hiểu thêm!",
+        "Mời bạn tham gia chương trình khuyến mãi hấp dẫn tại đây  https://shorten.asia/gPkmnG3e!!",
+        "Đừng bỏ lỡ cơ hội nhận ưu đãi đặc biệt này https://vay.fecredit.com.vn/!"
     ]
     
     try:
@@ -199,56 +206,57 @@ def auto_comment(account_info, driver):
             log_message("Đang tìm bài viết...")
             scroll_down(driver, times=5)
             post_links = get_post_links(driver)
-
+ 
             if not post_links:
                 log_message("Không tìm thấy bài viết.")
                 return
-
+ 
             comment_count = 0
             max_comments = random.randint(5, 15)
-
+ 
             for link in post_links:
                 if link in commented_links:
                     log_message(f"Đã bình luận trên: {link}. Bỏ qua...")
                     continue
-
+ 
                 log_message(f"Đang truy cập bài viết: {link}")
                 driver.get(link)
-                time.sleep(2)
-
+                random_sleep(2, 4)
+ 
                 try:
                     comment_box = WebDriverWait(driver, 10).until(
                         EC.element_to_be_clickable((By.XPATH, "//div[@contenteditable='true']"))
                     )
                     log_message("Ô bình luận đã sẵn sàng.")
                     comment_box.click()
-                    time.sleep(random.uniform(1, 3))
+                    random_sleep(1, 3)
                     
+                    # Chọn ngẫu nhiên bình luận từ danh sách
                     valid_comment = random.choice(comments)
                     log_message(f"Chuẩn bị bình luận: {valid_comment}")
                     comment_box.send_keys(valid_comment)
                     comment_box.send_keys(Keys.RETURN)
                     log_message(f"Bình luận thành công trên: {link}")
-
+ 
                     commented_links.add(link)
                     save_commented_link('commented_links.txt', link)
-
+ 
                     comment_count += 1
                     log_message(f"Tổng số bình luận: {comment_count}")
-                    time.sleep(random.uniform(5, 10))
-
+                    random_sleep(5, 10)
+ 
                     if comment_count >= max_comments:
                         log_message("Đã đạt số bình luận tối đa.")
                         break
-
+ 
                 except Exception as e:
                     log_message(f"Lỗi khi bình luận trên {link}: {e}")
                     continue
-
+ 
             break_time = random.randint(240, 360)
             log_message(f"Đang nghỉ trong {break_time // 60} phút...")
             time.sleep(break_time)
-
+ 
     finally:
         driver.quit()
         log_message("Bot đã dừng.")
@@ -258,7 +266,7 @@ def scroll_down(driver, times=3):
     for _ in range(times):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         log_message("Đang cuộn trang...")
-        time.sleep(random.uniform(2, 4))
+        random_sleep(2, 4)
 
 def get_post_links(driver):
     """Hàm lấy liên kết các bài viết từ trang tìm kiếm."""
